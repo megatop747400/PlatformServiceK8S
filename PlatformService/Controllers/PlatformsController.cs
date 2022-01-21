@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlatformService.SyncDataServices;
 using PlatformService.Data;
 using PlatformService.Dtos;
+using PlatformService.AsyncDataServices;
 
 namespace PlatformService.Controllers
 {
@@ -16,12 +17,14 @@ namespace PlatformService.Controllers
         private readonly IPlatformRepo _platformRepo;
         private readonly IMapper _mapper;
         private readonly ICommandDataClient _commandDataClient;
+        private readonly IMessageBusClient _messageBusClient;
 
-        public PlatformsController(IPlatformRepo platformRepo, IMapper mapper, ICommandDataClient commandDataClient)
+        public PlatformsController(IPlatformRepo platformRepo, IMapper mapper, ICommandDataClient commandDataClient, IMessageBusClient messageBusClient)
         {
             this._platformRepo = platformRepo;
             this._mapper = mapper;
             this._commandDataClient = commandDataClient;
+            this._messageBusClient = messageBusClient;
         }
 
         [HttpGet]
@@ -50,15 +53,30 @@ namespace PlatformService.Controllers
             _platformRepo.CreatePlatform(platformDto);
             _platformRepo.SaveChanges();
 
+            var platformReadDto = _mapper.Map<PlatformReadDto>(platformDto);
+
             string result = "NotSet";
             try
             {
-                result = await _commandDataClient.SendPlatformToCommand(_mapper.Map<PlatformReadDto>(platformDto));
+                result = await _commandDataClient.SendPlatformToCommand(platformReadDto);
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"Request failed - {ex.Message}");
+                System.Console.WriteLine($"Sync Platform publish request failed - {ex.Message}");
             }
+
+            try
+            {
+                var platformPublishDto = _mapper.Map<PlatformPublishDto>(platformReadDto);
+                platformPublishDto.Event = "Platform_Published";
+
+                _messageBusClient.PublishNewPlatform(platformPublishDto);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"Async Platform publish request failed - {ex.Message}");
+            }
+
 
             System.Console.WriteLine($"And the result was {result}");
 

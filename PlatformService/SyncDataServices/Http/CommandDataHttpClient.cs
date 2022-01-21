@@ -22,17 +22,18 @@ namespace PlatformService.SyncDataServices.Http
         public async Task<string> SendPlatformToCommand(PlatformReadDto platform)
         {
             var commandServiceUrl = _configuration["CommandServiceUrl"];
-            
-                    var httpContent = new StringContent(JsonSerializer.Serialize(platform) , Encoding.UTF8, "application/json");
+
+            var httpContent = new StringContent(JsonSerializer.Serialize(platform), Encoding.UTF8, "application/json");
 
             var result = await _httpClient.PostAsync(commandServiceUrl, httpContent);
 
-            if(result.IsSuccessStatusCode)
+            if (result.IsSuccessStatusCode)
             {
                 System.Console.WriteLine("Sending POST to command service was OK");
                 return "OK";
             }
-            else{
+            else
+            {
                 System.Console.WriteLine("Sending POST to command service Failed {result.StatusCode}");
                 return $"FAIL {result.StatusCode}";
             }

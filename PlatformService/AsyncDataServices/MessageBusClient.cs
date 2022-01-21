@@ -71,9 +71,9 @@ namespace PlatformService.AsyncDataServices
         private void SendMessage(string messageToSend)
         {
             var body = Encoding.UTF8.GetBytes(messageToSend);
-
+ 
             _channel.BasicPublish(exchange: "trigger",
-                routingKey: null,
+                routingKey: "",
                 basicProperties: null,
                 body: body);
 
