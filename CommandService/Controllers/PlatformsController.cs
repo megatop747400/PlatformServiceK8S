@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using AutoMapper;
+using CommandService.Data;
+using CommandService.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -7,20 +11,30 @@ namespace CommandService.Controllers
     [Route("api/c/[Controller]")]
     public class PlatformsController : ControllerBase
     {
+        private readonly ICommandRepo _commandRepo;
+        private readonly IMapper _mapper;
 
-        public class PlatformReadDto
+        public PlatformsController(ICommandRepo commandRepo, IMapper mapper)
+{
+            _commandRepo = commandRepo;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        public ActionResult<IEnumerable<PlatformReadDto>> GetPlatforms()
         {
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public string Publisher { get; set; }
-            public string Cost { get; set; }
+            System.Console.WriteLine("--> Getting platforms from command service");
+
+            var platformItems = _commandRepo.GetAllPlatforms();
+
+            return Ok(_mapper.Map<IEnumerable<PlatformReadDto>>(platformItems));
         }
 
         [HttpPost]
-        public ActionResult TestPost(PlatformReadDto platform)
+        public ActionResult TestPost()
         {
            
-            System.Console.WriteLine($"Post request was received in platforms controller {platform?.Name}");
+            System.Console.WriteLine($"Post request was received in platforms controller ");
 
             return Ok("all ok");
         }

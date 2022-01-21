@@ -14,7 +14,6 @@ namespace CommandService.Data
             _context = context;
         }
 
-
         void ICommandRepo.CreateCommand(int platformId, Command command)
         {
             if (command == null)
